@@ -1,6 +1,8 @@
 var through = require('through');
 var browserify = require('browserify');
 var chokidar = require('chokidar');
+var fs = require('fs');
+var path = require('path');
 
 module.exports = watchify;
 watchify.browserify = browserify;
@@ -94,6 +96,26 @@ function watchify(opts) {
             queuedDeps = {};
         });
         return outStream;
+    };
+
+    b.bundleAndWrite = function() {
+        var wb = b.bundle();
+        var outfile  = b.outfile;
+        var dotfile = path.join(path.dirname(outfile), '.' + path.basename(outfile));
+
+        wb.on('error', function (err) {
+            console.error(String(err));
+        });
+        var bytes = 0;
+        
+        function write (buf) { bytes += buf.length }
+        
+        function end () {
+            fs.createReadStream(dotfile).pipe(fs.createWriteStream(outfile));
+        }
+
+        wb.pipe(fs.createWriteStream(dotfile));
+        wb.pipe(through(write, end));
     };
     
     return b;
