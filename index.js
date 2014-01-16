@@ -46,6 +46,7 @@ function watchify(opts) {
         var watcher = chokidar.watch(dep.id, {
             persistent: true,
             ignoreInitial: true,
+            usePolling: true
         });
         watcher.on('error', function(err) {
             b.emit('error', err);
